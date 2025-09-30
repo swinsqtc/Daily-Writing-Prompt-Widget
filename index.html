@@ -5,31 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Writing Prompt Widget</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 600px;
-      margin: 40px auto;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-    .title {
-      font-size: 1.4em;
-      font-weight: bold;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-    .prompt {
-      font-size: 1.2em;
-      color: #333;
-      text-align: center;
-    }
+    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px; }
+    .card { background:#fff; border-radius:12px; padding:20px; max-width:600px; margin:40px auto; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+    .title { font-size:1.4em; font-weight:bold; margin-bottom:12px; text-align:center; }
+    .prompt { font-size:1.2em; color:#333; text-align:center; }
   </style>
 </head>
 <body>
@@ -39,31 +18,59 @@
   </div>
 
   <script>
+    // Link to your published Google Sheet (CSV format)
     const sheetUrl =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vSyn4gIZw-c9F5fNQdPAgF9Diwspr6Ly3gndfpkyGZw5mGFct5lN8Vuv4ltKhfmZUA3CkY2vh24gNXB/pub?gid=0&single=true&output=csv";
 
-    // 📅 Set your first day of school (adjust this date as needed)
-    const schoolYearStart = new Date("2025-10-01");
+    // Hardcoded No School Dates (YYYY-MM-DD)
+    const noSchoolDates = [
+      "2025-09-23","2025-09-24", // Rosh Hashanah
+      "2025-10-02",              // Yom Kippur
+      "2025-10-13",              // Italian Heritage / Indigenous Peoples’ Day
+      "2025-10-20",              // Diwali
+      "2025-11-11",              // Veterans Day
+      "2025-11-27","2025-11-28", // Thanksgiving
+      "2025-12-24","2025-12-25","2025-12-26","2025-12-29","2025-12-30","2025-12-31", // Winter Recess
+      "2026-01-01","2026-01-02", // Winter Recess cont.
+      "2026-01-19",              // Martin Luther King Jr. Day
+      "2026-02-16","2026-02-17","2026-02-18","2026-02-19","2026-02-20", // Midwinter Recess
+      "2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10", // Spring Recess
+      "2026-05-25",              // Memorial Day
+      "2026-06-04",              // Anniversary Day
+      "2026-06-06",              // Clerical Day
+      "2026-06-19"               // Juneteenth
+    ];
+
+    // First instructional day
+    const schoolYearStart = new Date("2025-09-04");
 
     async function loadPrompt() {
       try {
         const response = await fetch(sheetUrl);
         const text = await response.text();
-        const lines = text.split("\n").slice(1); // skip header row
+        const prompts = text.split("\n").slice(1).map(r => r.trim()).filter(r => r);
 
-        // Calculate "school day number"
         const today = new Date();
-        const dayIndex = Math.floor(
-          (today - schoolYearStart) / (1000 * 60 * 60 * 24)
-        );
+        const todayStr = today.toISOString().split("T")[0];
 
-        // Pull prompt from that row
-        const prompt = lines[dayIndex] || "No prompt set for today.";
+        // If today is a no school date → show message
+        if (noSchoolDates.includes(todayStr)) {
+          document.getElementById("promptText").textContent = "No School Today";
+          return;
+        }
 
-        document.getElementById("promptText").textContent = prompt;
+        // Count the number of school days since the start of the year
+        let count = 0;
+        for (let d = new Date(schoolYearStart); d <= today; d.setDate(d.getDate() + 1)) {
+          const dStr = d.toISOString().split("T")[0];
+          if (!noSchoolDates.includes(dStr)) count++;
+        }
+
+        // Pick prompt based on count
+        const index = (count - 1) % prompts.length; // loops if more days than prompts
+        document.getElementById("promptText").textContent = prompts[index] || "No prompt set.";
       } catch (err) {
-        document.getElementById("promptText").textContent =
-          "Error loading prompt.";
+        document.getElementById("promptText").textContent = "Error loading prompt.";
         console.error(err);
       }
     }
@@ -72,4 +79,3 @@
   </script>
 </body>
 </html>
-
