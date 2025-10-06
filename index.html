@@ -133,27 +133,34 @@
       document.getElementById("prompt").innerText = todayPrompt;
     }
 
-    // Teacher login/logout
-    function login() {
-      const pw = document.getElementById("password").value;
+    // Teacher Login
+    document.getElementById("teacherToggle").addEventListener("click", () => {
+      const panel = document.getElementById("teacherPanel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    });
+
+    document.getElementById("teacherLogin").addEventListener("click", () => {
+      const pw = document.getElementById("teacherPassword").value;
       if (pw === "Mone270") {
-        document.getElementById("teacher-panel").classList.remove("hidden");
-        document.getElementById("login").classList.add("hidden");
-        document.getElementById("editPrompt").value = todayPrompt;
+        document.getElementById("teacherControls").style.display = "block";
+        document.getElementById("teacherPassword").style.display = "none";
+        document.getElementById("teacherLogin").style.display = "none";
       } else {
         alert("Incorrect password");
       }
-    }
+    });
 
-    function logout() {
-      document.getElementById("teacher-panel").classList.add("hidden");
-      document.getElementById("login").classList.remove("hidden");
-    }
-
-    function updatePrompt() {
-      todayPrompt = document.getElementById("editPrompt").value;
-      document.getElementById("prompt").innerText = todayPrompt;
-      alert("Prompt updated for today (temporary change)");
+    document.getElementById("applyPrompt").addEventListener("click", () => {
+      const newPrompt = document.getElementById("manualPrompt").value.trim();
+      const msg = document.getElementById("teacherMsg");
+      if (newPrompt) {
+        localStorage.setItem("teacherOverridePrompt", newPrompt);
+        document.getElementById("promptText").textContent = newPrompt;
+        msg.textContent = "✅ Custom prompt applied for today.";
+      } else {
+        localStorage.removeItem("teacherOverridePrompt");
+        msg.textContent = "🧹 Custom prompt cleared.";
+        loadPrompt();
     }
 
     loadPrompts();
